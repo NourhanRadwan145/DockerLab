@@ -3,7 +3,6 @@ FROM php:8.3-fpm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    nginx \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libpng-dev \
@@ -28,15 +27,8 @@ WORKDIR /var/www/html
 # Copy existing application directory contents
 COPY ./laravel-authentication-app /var/www/html
 
-# Copy Nginx configuration file
-COPY nginx/default.conf /etc/nginx/sites-available/default
+# Expose port 9000
+EXPOSE 9000
 
-# Create a symbolic link to enable the site
-RUN rm -f /etc/nginx/sites-enabled/default && \
-    ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-
-# Expose port 80
-EXPOSE 80
-
-# Start Nginx and PHP-FPM
-CMD service nginx start && php-fpm
+# Start PHP-FPM
+CMD ["php-fpm"]
