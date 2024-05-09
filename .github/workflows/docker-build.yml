@@ -19,7 +19,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Laravel Authentication Image Build
         run: |
-          docker build -t "${{ secrets.DOCKERHUB_USERNAME }}/laravel-app" .
+          docker build -t "${{ secrets.DOCKERHUB_USERNAME }}/laravel_app" .
       - name: Laravel Authentication Image Push
         run: |
           docker push "${{ secrets.DOCKERHUB_USERNAME }}/laravel-authentication-app"
