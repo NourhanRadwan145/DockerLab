@@ -25,6 +25,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Clear Composer cache
 RUN composer clear-cache
 
+# Update Composer to the latest version
+RUN composer self-update --2
+
 # Install PHP dependencies using Composer
 RUN composer install --no-interaction --optimize-autoloader -vvv
 
