@@ -1,11 +1,23 @@
-FROM docker.io/library/php:8.0-apache
+FROM php:8.2-fpm
 
-RUN a2enmod rewrite
+WORKDIR /var/www
 
-WORKDIR /var/www/html
+COPY . /var/www
 
-COPY . /var/www/html
+RUN apt-get update && apt-get install -y \
+    curl \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    zip \
+    unzip \
+    && docker-php-ext-install gd \
+    && docker-php-ext-install pdo_mysql
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN composer install --no-interaction --optimize-autoloader
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+CMD ["php-fpm"]
