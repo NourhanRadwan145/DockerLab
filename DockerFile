@@ -1,38 +1,11 @@
-FROM php:8.2-fpm
+FROM docker.io/library/php:8.0-apache
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    unzip
+RUN a2enmod rewrite
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd pdo_mysql
+WORKDIR /var/www/html
 
-# Set working directory
-WORKDIR /var/www
+COPY . /var/www/html
 
-# Copy project files
-COPY . /var/www
-
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Clear Composer cache
-RUN composer clear-cache
-
-# Update Composer to the latest version
-RUN composer self-update --2
-
-# Install PHP dependencies using Composer
-RUN composer install --no-interaction --optimize-autoloader -vvv
-
-# Expose port 80
 EXPOSE 80
 
-# Start PHP-FPM
-CMD ["php-fpm"]
+CMD ["apache2-foreground"]
