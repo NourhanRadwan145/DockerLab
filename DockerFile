@@ -1,12 +1,23 @@
-FROM php:7.4-apache
+# Use the official PHP image as base
+FROM php:8.3-fpm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    libzip-dev \
+    nginx \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
     unzip \
-    git \
-    && docker-php-ext-install zip pdo pdo_mysql \
-    && a2enmod rewrite
+    libzip-dev \
+    curl
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql exif pcntl bcmath gd zip \
+    && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd \
+    && pecl install -o -f redis \
+    && rm -rf /tmp/pear \
+    && docker-php-ext-enable redis
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -14,21 +25,18 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy only the composer.json and composer.lock files to optimize Docker caching
-COPY composer.json composer.lock ./
+# Copy existing application directory contents
+COPY ./laravel-authentication-app /var/www/html
 
-# Install dependencies
-RUN composer install --no-scripts --no-autoloader
+# Copy Nginx configuration file
+COPY nginx/default.conf /etc/nginx/sites-available/default
 
-# Copy the rest of the application code
-COPY . .
+# Create a symbolic link to enable the site
+RUN rm -f /etc/nginx/sites-enabled/default && \
+    ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-# Generate optimized autoload files and load environment variables
-RUN composer dump-autoload --optimize && \
-    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Expose port
+# Expose port 80
 EXPOSE 80
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Start Nginx and PHP-FPM
+CMD service nginx start && php-fpm
