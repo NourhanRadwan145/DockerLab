@@ -30,11 +30,3 @@ EXPOSE 80
 # Start Apache
 CMD ["apache2-foreground"]
 
-# Install Laravel Installer globally
-RUN composer global require laravel/installer
-
-# Add composer bin directory to PATH
-ENV PATH="${PATH}:/root/.composer/vendor/bin"
-
-# Create a new Laravel project
-RUN laravel new my-laravel-app
