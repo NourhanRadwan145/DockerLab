@@ -1,27 +1,33 @@
 version: '3'
 
 services:
-  db:
+  mysql:
     image: mysql:5.7
     restart: always
     environment:
-      MYSQL_DATABASE: laravel
+      MYSQL_DATABASE: laravel_db
       MYSQL_USER: laravel_user
-      MYSQL_PASSWORD: laravel_password
-      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root_secret
     ports:
       - "3306:3306"
     volumes:
-      - db_data:/var/lib/mysql
+      - ./mysql:/var/lib/mysql
 
-  web:
-    build: .
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: laravel_db
+      DB_USERNAME: laravel_user
+      DB_PASSWORD: secret
     ports:
       - "8080:80"
     volumes:
       - .:/var/www/html
-    depends_on:
-      - db
-
-volumes:
-  db_data:
